@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Chat Assistant{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>AI Construction Assistant</h2>
+        <p class="text-muted">Get instant answers to your construction questions</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Chat Interface</h5>
+            </div>
+            <div class="card-body">
+                <div id="chat-container" style="height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; background-color: #f8f9fa;">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-robot display-4"></i>
+                        <p class="mt-2">Hello! I'm your AI construction assistant. Ask me anything about house construction, materials, costs, or timelines.</p>
+                    </div>
+                </div>
+                
+                <form id="chat-form">
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="form-control" placeholder="Ask your construction question..." required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Questions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary quick-question" data-question="What is the average cost of building a 2 BHK house?">
+                        Average 2 BHK Cost
+                    </button>
+                    <button class="btn btn-outline-primary quick-question" data-question="How long does it take to build a house?">
+                        Construction Timeline
+                    </button>
+                    <button class="btn btn-outline-primary quick-question" data-question="What materials are best for foundation?">
+                        Foundation Materials
+                    </button>
+                    <button class="btn btn-outline-primary quick-question" data-question="How to find reliable thekedars?">
+                        Find Thekedars
+                    </button>
+                    <button class="btn btn-outline-primary quick-question" data-question="What permits are needed for construction?">
+                        Construction Permits
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Popular Topics</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-cash text-success"></i>
+                        <strong>Cost Estimation</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-calendar text-primary"></i>
+                        <strong>Timeline Planning</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-tools text-warning"></i>
+                        <strong>Material Selection</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-info"></i>
+                        <strong>Quality Standards</strong>
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-people text-secondary"></i>
+                        <strong>Worker Management</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'house_ai:submit' %}" class="btn btn-outline-primary">Submit Requirement</a>
+                    <a href="{% url 'house_ai:my_requirements' %}" class="btn btn-outline-info">My Requirements</a>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatContainer = document.getElementById('chat-container');
+    const quickQuestions = document.querySelectorAll('.quick-question');
+    
+    // Add message to chat
+    function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `mb-3 ${isUser ? 'text-end' : 'text-start'}`;
+        
+        const badgeClass = isUser ? 'bg-primary' : 'bg-secondary';
+        const sender = isUser ? 'You' : 'AI Assistant';
+        
+        messageDiv.innerHTML = `
+            <div class="d-inline-block">
+                <span class="badge ${badgeClass}">${sender}</span>
+                <div class="card mt-1" style="max-width: 300px;">
+                    <div class="card-body p-2">
+                        <p class="mb-0">${message}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+    // Handle form submission
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // Add user message
+        addMessage(message, true);
+        messageInput.value = '';
+        
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'mb-3 text-start typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="d-inline-block">
+                <span class="badge bg-secondary">AI Assistant</span>
+                <div class="card mt-1" style="max-width: 300px;">
+                    <div class="card-body p-2">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2">Thinking...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        
+        // Send to server
+        fetch('{% url "house_ai:ai_chat" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `message=${encodeURIComponent(message)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Remove typing indicator
+            const indicator = document.querySelector('.typing-indicator');
+            if (indicator) indicator.remove();
+            
+            // Add AI response
+            addMessage(data.ai_response, false);
+        })
+        .catch(error => {
+            // Remove typing indicator
+            const indicator = document.querySelector('.typing-indicator');
+            if (indicator) indicator.remove();
+            
+            addMessage('Sorry, I encountered an error. Please try again.', false);
+        });
+    });
+    
+    // Handle quick questions
+    quickQuestions.forEach(button => {
+        button.addEventListener('click', function() {
+            const question = this.getAttribute('data-question');
+            messageInput.value = question;
+            chatForm.dispatchEvent(new Event('submit'));
+        });
+    });
+});
+</script>
+{% endblock %}

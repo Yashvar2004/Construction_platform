@@ -17,20 +17,31 @@ def thekedar_profile(request):
     try:
         profile = request.user.thekedar_profile
     except ThekedarProfile.DoesNotExist:
-        profile = None
+        profile = ThekedarProfile.objects.create(
+            user=request.user,
+            experience_years=0,
+            company_name=f"{request.user.name}'s Construction",
+            score=0.0,
+            verified=False
+        )
     
     if request.method == 'POST':
         form = ThekedarProfileForm(request.POST, instance=profile)
         if form.is_valid():
-            thekedar_profile = form.save(commit=False)
-            thekedar_profile.user = request.user
-            thekedar_profile.save()
+            form.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('thekedars:profile')
     else:
         form = ThekedarProfileForm(instance=profile)
     
-    return render(request, 'thekedars/profile.html', {'form': form, 'profile': profile})
+    # Calculate active jobs count
+    active_jobs_count = profile.job_posts.filter(status='open').count()
+    
+    return render(request, 'thekedars/profile.html', {
+        'form': form, 
+        'profile': profile,
+        'active_jobs_count': active_jobs_count
+    })
 
 
 @login_required

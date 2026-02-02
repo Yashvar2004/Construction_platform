@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Media{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Upload Media</h2>
+        <p class="text-muted">Add images or videos for your {{ requirement.plot_size }} plot</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Media Upload</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.files.id_for_label }}" class="form-label">Select Files</label>
+                        {{ form.files }}
+                        {% if form.files.errors %}
+                            <div class="text-danger">{{ form.files.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            Upload multiple files at once. Supported formats: Images (JPG, PNG, GIF), Videos (MP4, AVI)
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>Upload Guidelines:</h6>
+                        <ul class="mb-0">
+                            <li>Maximum file size: 10MB per file</li>
+                            <li>Upload site photos, floor plans, or design documents</li>
+                            <li>AI will analyze uploaded media for better recommendations</li>
+                            <li>You can upload multiple files at once</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'house_ai:view_requirement' requirement.id %}" class="btn btn-outline-secondary me-md-2">Back to Requirement</a>
+                        <button type="submit" class="btn btn-primary">Upload Files</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Requirement Details</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Plot Size:</strong> {{ requirement.plot_size }}</p>
+                <p><strong>Floors:</strong> {{ requirement.floors }}</p>
+                <p><strong>City:</strong> {{ requirement.city }}</p>
+                <p><strong>Budget:</strong> ₹{{ requirement.budget }}</p>
+                <p><strong>Current Media:</strong> {{ requirement.media_uploads.count }} files</p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>File Types</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-image text-primary"></i>
+                        <strong>Images:</strong> JPG, PNG, GIF
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-play-circle text-success"></i>
+                        <strong>Videos:</strong> MP4, AVI, MOV
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'house_ai:view_requirement' requirement.id %}" class="btn btn-outline-primary">View Requirement</a>
+                    <a href="{% url 'house_ai:ai_chat' %}" class="btn btn-outline-info">AI Chat</a>
+                    <a href="{% url 'house_ai:my_requirements' %}" class="btn btn-outline-secondary">My Requirements</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Review{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Delete Review</h2>
+        <p class="text-muted">Are you sure you want to delete this review?</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Review Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Rating:</strong> 
+                    <span class="text-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        ({{ review.rating }}/5)
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Reviewed:</strong> 
+                    {% if review.worker %}
+                        {{ review.worker.user.name }} (Worker)
+                    {% elif review.thekedar %}
+                        {{ review.thekedar.user.name }} (Thekedar)
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Date:</strong> {{ review.created_at|date:"M d, Y" }}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Comment:</strong>
+                    <p class="text-muted">{{ review.comment }}</p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6>⚠️ Warning</h6>
+                    <p class="mb-0">This action cannot be undone. Once deleted, this review will be permanently removed from the system.</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'reviews:my_reviews' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Delete Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

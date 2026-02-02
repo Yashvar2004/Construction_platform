@@ -32,10 +32,10 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-primary">Submit House Requirement</a>
-                    <a href="#" class="btn btn-outline-primary">Browse Thekedars</a>
-                    <a href="#" class="btn btn-outline-secondary">My Requirements</a>
-                    <a href="#" class="btn btn-outline-info">Edit Profile</a>
+                    <a href="{% url 'house_ai:submit' %}" class="btn btn-primary">Submit House Requirement</a>
+                    <a href="{% url 'house_ai:ai_chat' %}" class="btn btn-outline-primary">AI Chat Assistant</a>
+                    <a href="{% url 'house_ai:my_requirements' %}" class="btn btn-outline-secondary">My Requirements</a>
+                    <a href="#" class="btn btn-outline-info">Find Thekedars</a>
                 </div>
             </div>
         </div>

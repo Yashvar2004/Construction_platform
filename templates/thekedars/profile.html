@@ -79,7 +79,7 @@
                     {% endif %}
                 </p>
                 <p><strong>Projects:</strong> {{ profile.projects.count }}</p>
-                <p><strong>Active Jobs:</strong> {{ profile.job_posts.filter(status='open').count }}</p>
+                <p><strong>Active Jobs:</strong> {{ active_jobs_count }}</p>
             </div>
         </div>
         {% endif %}

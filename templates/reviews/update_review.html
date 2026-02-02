@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Review{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Update Review</h2>
+        <p class="text-muted">Edit your review</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Edit Your Review</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.rating.id_for_label }}" class="form-label">Rating</label>
+                        {{ form.rating }}
+                        {% if form.rating.errors %}
+                            <div class="text-danger">{{ form.rating.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.comment.id_for_label }}" class="form-label">Your Review</label>
+                        {{ form.comment }}
+                        {% if form.comment.errors %}
+                            <div class="text-danger">{{ form.comment.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'reviews:my_reviews' %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Current Review</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Rating:</strong> {{ review.rating }}/5</p>
+                <p><strong>Date:</strong> {{ review.created_at|date:"M d, Y" }}</p>
+                <p><strong>Comment:</strong></p>
+                <p class="text-muted">{{ review.comment }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

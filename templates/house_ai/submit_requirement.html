@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit House Requirement{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Submit House Requirement</h2>
+        <p class="text-muted">Get AI-powered construction analysis for your dream home</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>House Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.plot_size.id_for_label }}" class="form-label">Plot Size</label>
+                            {{ form.plot_size }}
+                            {% if form.plot_size.errors %}
+                                <div class="text-danger">{{ form.plot_size.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.floors.id_for_label }}" class="form-label">Number of Floors</label>
+                            {{ form.floors }}
+                            {% if form.floors.errors %}
+                                <div class="text-danger">{{ form.floors.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="text-danger">{{ form.city.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.budget.id_for_label }}" class="form-label">Budget (₹)</label>
+                            {{ form.budget }}
+                            {% if form.budget.errors %}
+                                <div class="text-danger">{{ form.budget.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>AI Analysis Features:</h6>
+                        <ul class="mb-0">
+                            <li>Automatic cost estimation and breakdown</li>
+                            <li>Construction timeline optimization</li>
+                            <li>Material recommendations</li>
+                            <li>Professional thekedar matching</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary me-md-2">Back to Dashboard</a>
+                        <button type="submit" class="btn btn-primary">Submit Requirement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>House Types</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <strong>Plot Size:</strong> Enter your plot area (e.g., 1000 sq ft)
+                    </li>
+                    <li class="mb-2">
+                        <strong>Floors:</strong> Number of floors you want to build
+                    </li>
+                    <li class="mb-2">
+                        <strong>City:</strong> Location where construction will happen
+                    </li>
+                    <li class="mb-2">
+                        <strong>Budget:</strong> Your total construction budget
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'house_ai:ai_chat' %}" class="btn btn-outline-primary">AI Chat Assistant</a>
+                    <a href="{% url 'house_ai:my_requirements' %}" class="btn btn-outline-info">My Requirements</a>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

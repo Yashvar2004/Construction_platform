@@ -25,6 +25,8 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('workers/', include('workers.urls')),
     path('thekedars/', include('thekedars.urls')),
+    path('house-ai/', include('house_ai.urls')),
+    path('reviews/', include('reviews.urls')),
 ]
 
 if settings.DEBUG:
