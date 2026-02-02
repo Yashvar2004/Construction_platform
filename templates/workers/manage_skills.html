@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Skills{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Manage Skills</h2>
+        <p class="text-muted">Select your construction skills</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Your Skills</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        {% for skill in all_skills %}
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                       name="skills" 
+                                       value="{{ skill.id }}" 
+                                       class="form-check-input" 
+                                       id="skill_{{ skill.id }}"
+                                       {% if skill in profile.skills.all %}checked{% endif %}>
+                                <label class="form-check-label" for="skill_{{ skill.id }}">
+                                    {{ skill.name }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'workers:profile' %}" class="btn btn-outline-secondary me-md-2">Back to Profile</a>
+                        <button type="submit" class="btn btn-primary">Save Skills</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'workers:profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                    <a href="{% url 'workers:browse_jobs' %}" class="btn btn-outline-success">Browse Jobs</a>
+                    <a href="{% url 'workers:my_applications' %}" class="btn btn-outline-info">My Applications</a>
+                </div>
+            </div>
+        </div>
+        
+        {% if profile %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Current Skills</h5>
+            </div>
+            <div class="card-body">
+                {% if profile.skills.all %}
+                    {% for skill in profile.skills.all %}
+                        <span class="badge bg-primary me-2 mb-2">{{ skill.name }}</span>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No skills selected yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

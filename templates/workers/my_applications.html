@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Job Applications</h2>
+        <p class="text-muted">Track your job application status</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if applications %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Job</th>
+                            <th>Company</th>
+                            <th>Duration</th>
+                            <th>Wage</th>
+                            <th>Applied Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td>
+                                <strong>{{ app.job.required_skill.name }}</strong>
+                                {% if app.job.thekedar.verified %}
+                                    <span class="badge bg-info ms-2">Verified</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ app.job.thekedar.company_name }}</td>
+                            <td>{{ app.job.duration_days }} days</td>
+                            <td>₹{{ app.job.wage_offer }}/day</td>
+                            <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if app.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% elif app.status == 'accepted' %}
+                                    <span class="badge bg-success">Accepted</span>
+                                {% elif app.status == 'rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% elif app.status == 'withdrawn' %}
+                                    <span class="badge bg-secondary">Withdrawn</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                    {% if app.status == 'pending' %}
+                                        <a href="#" class="btn btn-sm btn-outline-danger">Withdraw</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <h4>No Applications Yet</h4>
+                <p class="text-muted">You haven't applied for any jobs yet. Start browsing available jobs!</p>
+                <a href="{% url 'workers:browse_jobs' %}" class="btn btn-primary">Browse Jobs</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+            <a href="{% url 'workers:browse_jobs' %}" class="btn btn-primary">Browse More Jobs</a>
+        </div>
+    </div>
+</div>
+
+<!-- Application Statistics -->
+{% if applications %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ applications|length }}</h5>
+                <p class="card-text">Total Applications</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">{{ applications|length }}</h5>
+                <p class="card-text">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">0</h5>
+                <p class="card-text">Accepted</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-danger">0</h5>
+                <p class="card-text">Rejected</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

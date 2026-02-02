@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Thekedar Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Thekedar Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ user.name }}!</p>
+    </div>
+</div>
+
+{% if profile_incomplete %}
+<div class="alert alert-warning">
+    <h4>Profile Incomplete</h4>
+    <p>Please complete your thekedar profile to start posting jobs and managing projects.</p>
+    <a href="{% url 'thekedars:profile' %}" class="btn btn-warning">Complete Profile</a>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Company Information</h5>
+            </div>
+            <div class="card-body">
+                {% if thekedar_profile %}
+                    <p><strong>Company:</strong> {{ thekedar_profile.company_name }}</p>
+                    <p><strong>Experience:</strong> {{ thekedar_profile.experience_years }} years</p>
+                    <p><strong>Score:</strong> {{ thekedar_profile.score }}</p>
+                    <p><strong>Verification:</strong> 
+                        {% if thekedar_profile.verified %}
+                            <span class="badge bg-success">Verified</span>
+                        {% else %}
+                            <span class="badge bg-warning">Not Verified</span>
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Statistics</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Projects:</strong> {{ recent_projects|length }}</p>
+                <p><strong>Active Jobs:</strong> {{ job_posts|length }}</p>
+                <p><strong>Profile Status:</strong> 
+                    {% if thekedar_profile.verified %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'thekedars:create_job' %}" class="btn btn-primary">Post New Job</a>
+                    <a href="{% url 'thekedars:create_project' %}" class="btn btn-outline-primary">Create Project</a>
+                    <a href="{% url 'thekedars:job_posts' %}" class="btn btn-outline-secondary">View Applications</a>
+                    <a href="{% url 'thekedars:profile' %}" class="btn btn-outline-info">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Projects</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_projects %}
+                    {% for project in recent_projects %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ project.title }}</h6>
+                        <p class="mb-1"><strong>Budget:</strong> ₹{{ project.budget }}</p>
+                        <p class="mb-1"><strong>Status:</strong> 
+                            <span class="badge bg-{{ project.status|default:'secondary' }}">
+                                {{ project.get_status_display|default:project.status }}
+                            </span>
+                        </p>
+                        <small class="text-muted">{{ project.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No projects yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Job Posts</h5>
+            </div>
+            <div class="card-body">
+                {% if job_posts %}
+                    {% for job in job_posts %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ job.required_skill.name }} Required</h6>
+                        <p class="mb-1"><strong>Duration:</strong> {{ job.duration_days }} days</p>
+                        <p class="mb-1"><strong>Wage Offer:</strong> ₹{{ job.wage_offer }}/day</p>
+                        <p class="mb-1"><strong>Status:</strong> 
+                            <span class="badge bg-{{ job.status|default:'secondary' }}">
+                                {{ job.get_status_display|default:job.status }}
+                            </span>
+                        </p>
+                        <small class="text-muted">{{ job.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No job posts yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

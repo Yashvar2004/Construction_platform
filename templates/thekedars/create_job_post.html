@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Job{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Post New Job</h2>
+        <p class="text-muted">Hire skilled workers for your construction needs</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Job Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="required_skill" class="form-label">Required Skill</label>
+                        <select name="required_skill" id="required_skill" class="form-control" required>
+                            <option value="">Select a skill...</option>
+                            {% for skill in skills %}
+                                <option value="{{ skill.id }}">{{ skill.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Choose the primary skill required for this job</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="duration_days" class="form-label">Duration (Days)</label>
+                            <input type="number" name="duration_days" id="duration_days" class="form-control" min="1" required>
+                            <div class="form-text">Expected duration in days</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="wage_offer" class="form-label">Daily Wage (₹)</label>
+                            <input type="number" name="wage_offer" id="wage_offer" class="form-control" min="0" step="0.01" required>
+                            <div class="form-text">Daily wage offer for this position</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>Job Posting Guidelines:</h6>
+                        <ul class="mb-0">
+                            <li>Offer competitive wages to attract skilled workers</li>
+                            <li>Be realistic about project duration</li>
+                            <li>Specify exact skill requirements</li>
+                            <li>Applications will be reviewed by you</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'thekedars:job_posts' %}" class="btn btn-outline-secondary me-md-2">Back to Job Posts</a>
+                        <button type="submit" class="btn btn-primary">Post Job</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Available Skills</h5>
+            </div>
+            <div class="card-body">
+                {% for skill in skills %}
+                    <span class="badge bg-primary me-2 mb-2">{{ skill.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'thekedars:profile' %}" class="btn btn-outline-primary">Edit Profile</a>
+                    <a href="{% url 'thekedars:create_project' %}" class="btn btn-outline-success">Create Project</a>
+                    <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Market Rates</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Typical daily wages for common skills:</p>
+                <ul class="list-unstyled small">
+                    <li><strong>Masonry:</strong> ₹500-800/day</li>
+                    <li><strong>Carpentry:</strong> ₹600-900/day</li>
+                    <li><strong>Plumbing:</strong> ₹700-1000/day</li>
+                    <li><strong>Electrical:</strong> ₹800-1200/day</li>
+                    <li><strong>Painting:</strong> ₹400-600/day</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

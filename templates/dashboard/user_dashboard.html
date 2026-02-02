@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>House Builder Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ user.name }}!</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ user.name }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Phone:</strong> {{ user.phone }}</p>
+                <p><strong>Location:</strong> {{ user.location }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary">Submit House Requirement</a>
+                    <a href="#" class="btn btn-outline-primary">Browse Thekedars</a>
+                    <a href="#" class="btn btn-outline-secondary">My Requirements</a>
+                    <a href="#" class="btn btn-outline-info">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>AI Design Assistant</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Get AI-powered design suggestions and cost insights for your dream home.</p>
+                <div class="d-grid">
+                    <a href="#" class="btn btn-success">Try AI Assistant</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent House Requirements</h5>
+            </div>
+            <div class="card-body">
+                {% if house_requirements %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Plot Size</th>
+                                    <th>Budget</th>
+                                    <th>Floors</th>
+                                    <th>City</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in house_requirements %}
+                                <tr>
+                                    <td>{{ req.plot_size }}</td>
+                                    <td>₹{{ req.budget }}</td>
+                                    <td>{{ req.floors }}</td>
+                                    <td>{{ req.city }}</td>
+                                    <td>{{ req.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                        {% if req.ai_response %}
+                                            <a href="#" class="btn btn-sm btn-outline-success">AI Insights</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No house requirements submitted yet.</p>
+                        <a href="#" class="btn btn-primary">Submit Your First Requirement</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Top Rated Thekedars</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Browse and contact verified contractors in your area.</p>
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-primary">Browse Thekedars</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Design Gallery</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Explore house designs and get inspiration for your dream home.</p>
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-info">View Gallery</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

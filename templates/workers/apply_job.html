@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Job{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Apply for Job</h2>
+        <p class="text-muted">Review job details before applying</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Job Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Required Skill:</strong> {{ job.required_skill.name }}</p>
+                        <p><strong>Duration:</strong> {{ job.duration_days }} days</p>
+                        <p><strong>Wage Offer:</strong> ₹{{ job.wage_offer }}/day</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Company:</strong> {{ job.thekedar.company_name }}</p>
+                        <p><strong>Experience Required:</strong> {{ job.thekedar.experience_years }} years</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-success">{{ job.get_status_display }}</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Thekedar Score:</strong> {{ job.thekedar.score }}</p>
+                        <p><strong>Posted Date:</strong> {{ job.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Verification:</strong> 
+                            {% if job.thekedar.verified %}
+                                <span class="badge bg-info">Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning">Not Verified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Application Confirmation</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="alert alert-info">
+                        <h6>Application Details:</h6>
+                        <ul class="mb-0">
+                            <li>You are applying for: <strong>{{ job.required_skill.name }}</strong></li>
+                            <li>Duration: <strong>{{ job.duration_days }} days</strong></li>
+                            <li>Daily Wage: <strong>₹{{ job.wage_offer }}</strong></li>
+                            <li>Company: <strong>{{ job.thekedar.company_name }}</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'workers:browse_jobs' %}" class="btn btn-outline-secondary me-md-2">Back to Jobs</a>
+                        <button type="submit" class="btn btn-primary">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Important Notes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        You have the required skill for this job
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-info-circle text-info"></i>
+                        Application will be sent to the thekedar
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock text-warning"></i>
+                        Response time varies by thekedar
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        Your profile will be shared with the thekedar
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Thekedar Info</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Company:</strong> {{ job.thekedar.company_name }}</p>
+                <p><strong>Experience:</strong> {{ job.thekedar.experience_years }} years</p>
+                <p><strong>Score:</strong> {{ job.thekedar.score }}</p>
+                <p><strong>Verification:</strong> 
+                    {% if job.thekedar.verified %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <span class="badge bg-warning">Not Verified</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

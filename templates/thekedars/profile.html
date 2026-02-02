@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Thekedar Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Thekedar Profile</h2>
+        <p class="text-muted">Manage your company information</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Company Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.company_name.id_for_label }}" class="form-label">Company Name</label>
+                        {{ form.company_name }}
+                        {% if form.company_name.errors %}
+                            <div class="text-danger">{{ form.company_name.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Your construction company name</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.experience_years.id_for_label }}" class="form-label">Experience (Years)</label>
+                        {{ form.experience_years }}
+                        {% if form.experience_years.errors %}
+                            <div class="text-danger">{{ form.experience_years.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Years of experience in construction</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary me-md-2">Back to Dashboard</a>
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'thekedars:create_project' %}" class="btn btn-outline-primary">Create Project</a>
+                    <a href="{% url 'thekedars:create_job' %}" class="btn btn-outline-success">Post Job</a>
+                    <a href="{% url 'thekedars:projects' %}" class="btn btn-outline-info">My Projects</a>
+                    <a href="{% url 'thekedars:job_posts' %}" class="btn btn-outline-secondary">Job Posts</a>
+                </div>
+            </div>
+        </div>
+        
+        {% if profile %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Current Stats</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Company:</strong> {{ profile.company_name }}</p>
+                <p><strong>Experience:</strong> {{ profile.experience_years }} years</p>
+                <p><strong>Score:</strong> {{ profile.score }}</p>
+                <p><strong>Verification:</strong> 
+                    {% if profile.verified %}
+                        <span class="badge bg-success">Verified</span>
+                    {% else %}
+                        <span class="badge bg-warning">Not Verified</span>
+                    {% endif %}
+                </p>
+                <p><strong>Projects:</strong> {{ profile.projects.count }}</p>
+                <p><strong>Active Jobs:</strong> {{ profile.job_posts.filter(status='open').count }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

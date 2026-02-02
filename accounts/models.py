@@ -9,6 +9,7 @@ class User(AbstractUser):
         ('user', 'Normal User'),
     ]
     
+    username = None  # Remove username field
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True)

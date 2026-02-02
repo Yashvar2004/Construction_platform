@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Posts{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>My Job Posts</h2>
+        <p class="text-muted">Manage your job postings and applications</p>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-primary">{{ job_posts.count }} Posts</span>
+                <span class="badge bg-success">{{ job_posts|length }} Open</span>
+            </div>
+            <a href="{% url 'thekedars:create_job' %}" class="btn btn-primary">Post New Job</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if job_posts %}
+        {% for job in job_posts %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ job.required_skill.name }} Required</h5>
+                    <span class="badge bg-{{ job.status|default:'secondary' }}">
+                        {{ job.get_status_display|default:job.status }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Duration:</strong> {{ job.duration_days }} days
+                        </div>
+                        <div class="col-6">
+                            <strong>Wage:</strong> ₹{{ job.wage_offer }}/day
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Applications:</strong> {{ job.applications.count }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Posted:</strong> {{ job.created_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'thekedars:job_applications' job.id %}" class="btn btn-outline-primary btn-sm">
+                            View Applications ({{ job.applications.count }})
+                        </a>
+                        {% if job.status == 'open' %}
+                            <a href="#" class="btn btn-outline-warning btn-sm">Close Job</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <h4>No Job Posts Yet</h4>
+                <p class="text-muted">Start by posting your first job to hire workers.</p>
+                <a href="{% url 'thekedars:create_job' %}" class="btn btn-primary">Post Job</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+            <a href="{% url 'thekedars:projects' %}" class="btn btn-outline-info">View Projects</a>
+        </div>
+    </div>
+</div>
+
+<!-- Job Statistics -->
+{% if job_posts %}
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary">{{ job_posts.count }}</h5>
+                <p class="card-text">Total Posts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success">{{ job_posts|length }}</h5>
+                <p class="card-text">Open Jobs</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info">{{ job_posts|length }}</h5>
+                <p class="card-text">Total Applications</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning">0</h5>
+                <p class="card-text">Filled Jobs</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

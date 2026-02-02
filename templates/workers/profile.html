@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Worker Profile</h2>
+        <p class="text-muted">Manage your professional information</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.experience_years.id_for_label }}" class="form-label">Experience (Years)</label>
+                        {{ form.experience_years }}
+                        {% if form.experience_years.errors %}
+                            <div class="text-danger">{{ form.experience_years.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Number of years you have worked in construction</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.daily_wage.id_for_label }}" class="form-label">Daily Wage (₹)</label>
+                        {{ form.daily_wage }}
+                        {% if form.daily_wage.errors %}
+                            <div class="text-danger">{{ form.daily_wage.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">Your expected daily wage</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.availability }}
+                            <label class="form-check-label" for="{{ form.availability.id_for_label }}">
+                                Available for work
+                            </label>
+                        </div>
+                        <div class="form-text">Uncheck if you're currently not available</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary me-md-2">Back to Dashboard</a>
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'workers:manage_skills' %}" class="btn btn-outline-primary">Manage Skills</a>
+                    <a href="{% url 'workers:browse_jobs' %}" class="btn btn-outline-success">Browse Jobs</a>
+                    <a href="{% url 'workers:my_applications' %}" class="btn btn-outline-info">My Applications</a>
+                </div>
+            </div>
+        </div>
+        
+        {% if profile %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>Current Stats</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Experience:</strong> {{ profile.experience_years }} years</p>
+                <p><strong>Daily Wage:</strong> ₹{{ profile.daily_wage }}</p>
+                <p><strong>Availability:</strong> 
+                    {% if profile.availability %}
+                        <span class="badge bg-success">Available</span>
+                    {% else %}
+                        <span class="badge bg-danger">Not Available</span>
+                    {% endif %}
+                </p>
+                <p><strong>Average Rating:</strong> {{ profile.avg_rating }}/5</p>
+                <p><strong>Skills:</strong> {{ profile.skills.count }} skills</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
