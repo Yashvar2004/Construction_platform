@@ -3,8 +3,11 @@ from django.contrib.auth.decorators import login_required
 from accounts.models import User
 
 
-@login_required
 def home(request):
+    """Home page - show landing page for non-authenticated users, dashboard for authenticated users"""
+    if not request.user.is_authenticated:
+        return render(request, 'landing.html')
+    
     user = request.user
     
     # Role-based dashboard data
