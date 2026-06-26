@@ -89,10 +89,12 @@ WSGI_APPLICATION = 'construction_platfrom.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Use /tmp for SQLite on Vercel (ephemeral but writable)
+import tempfile
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(tempfile.gettempdir(), 'db.sqlite3') if os.environ.get('VERCEL') else BASE_DIR / 'db.sqlite3',
     }
 }
 
