@@ -11,4 +11,5 @@ urlpatterns = [
     path('delete-media/<int:media_id>/', views.delete_media, name='delete_media'),
     path('regenerate-ai/<int:requirement_id>/', views.regenerate_ai_response, name='regenerate_ai'),
     path('ai-chat/', views.ai_chat, name='ai_chat'),
+    path('explore-designs/<int:requirement_id>/', views.explore_designs, name='explore_designs'),
 ]

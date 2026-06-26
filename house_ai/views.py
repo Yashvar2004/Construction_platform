@@ -316,3 +316,140 @@ def ai_chat(request):
         })
 
     return render(request, 'house_ai/ai_chat.html')
+
+
+DESIGN_SYSTEM_PROMPT = """You are an expert Indian house architect and interior designer. Generate a detailed, personalized house design plan based on the user's requirements.
+
+You MUST respond in valid JSON format with exactly this structure:
+{
+    "architectural_style": "Style name and why it suits these requirements",
+    "style_description": "2-3 sentences describing the overall aesthetic",
+    "exterior": {
+        "design": "Detailed exterior design description (facade, materials, colors)",
+        "features": ["feature1", "feature2", "feature3", "feature4"]
+    },
+    "room_layout": {
+        "ground_floor": {
+            "rooms": ["Room1: description", "Room2: description", ...],
+            "highlight": "One key design highlight"
+        },
+        "first_floor": {
+            "rooms": ["Room1: description", "Room2: description", ...],
+            "highlight": "One key design highlight"
+        }
+    },
+    "interiors": {
+        "living_room": "Design description with colors, furniture style, lighting",
+        "kitchen": "Kitchen layout, countertop material, cabinet style",
+        "bedrooms": "Bedroom design approach, storage solutions",
+        "bathrooms": "Bathroom fixtures, tiles, modern features"
+    },
+    "color_palette": {
+        "primary": "Color name and hex code",
+        "secondary": "Color name and hex code",
+        "accent": "Color name and hex code",
+        "description": "Why this palette works for this home"
+    },
+    "materials": {
+        "flooring": "Recommended flooring types per area",
+        "walls": "Wall treatments and paint",
+        "roof": "Roofing material and style",
+        "windows": "Window type and style"
+    },
+    "vastu_tips": ["tip1", "tip2", "tip3"],
+    "smart_features": ["feature1", "feature2", "feature3"],
+    "estimated_timeline": "Construction timeline breakdown by phase",
+    "pro_tips": ["tip1", "tip2", "tip3"]
+}
+
+Be specific to Indian construction practices, local materials, and climate considerations for the given city. All cost references should be in INR (₹). Keep descriptions vivid and practical."""
+
+
+@login_required
+def explore_designs(request, requirement_id):
+    """Generate and display personalized house design inspiration."""
+    if request.user.role != 'user':
+        messages.error(request, 'Access denied. Normal user role required.')
+        return redirect('dashboard:home')
+
+    requirement = get_object_or_404(HouseRequirement, id=requirement_id, user=request.user)
+
+    # Curated design images by category (Unsplash)
+    design_images = {
+        'modern_exterior': [
+            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&h=400&fit=crop',
+        ],
+        'traditional_indian': [
+            'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=600&h=400&fit=crop',
+        ],
+        'living_room': [
+            'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&h=400&fit=crop',
+        ],
+        'kitchen': [
+            'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600585153490-76fb20a32601?w=600&h=400&fit=crop',
+        ],
+        'bedroom': [
+            'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=600&h=400&fit=crop',
+        ],
+        'bathroom': [
+            'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=600&h=400&fit=crop',
+        ],
+    }
+
+    # Generate AI design plan
+    design_json = None
+    error = None
+
+    user_prompt = f"""Generate a personalized house design plan for:
+
+- Plot Size: {requirement.plot_size}
+- Budget: ₹{requirement.budget:,.0f}
+- Floors: {requirement.floors}
+- City: {requirement.city}
+
+Consider the local climate, available materials, and Indian construction practices for {requirement.city}. Provide room layouts appropriate for a {requirement.plot_size} plot with {requirement.floors} floor(s) within a ₹{requirement.budget:,.0f} budget. Include Vastu Shastra recommendations."""
+
+    messages_list = [
+        {"role": "system", "content": DESIGN_SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    response_text, error = call_groq_api(messages_list, max_tokens=2000)
+
+    if response_text:
+        try:
+            # Try to extract JSON from the response
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if json_match:
+                import json
+                design_json = json.loads(json_match.group())
+            else:
+                error = "AI returned invalid format"
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parse error: {e}")
+            error = "AI returned invalid JSON"
+
+    # Build context for template
+    context = {
+        'requirement': requirement,
+        'design_images': design_images,
+        'design_json': design_json,
+        'error': error,
+    }
+
+    return render(request, 'house_ai/explore_designs.html', context)

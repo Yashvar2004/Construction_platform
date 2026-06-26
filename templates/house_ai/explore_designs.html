@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore House Designs - {{ requirement.city }}{% endblock %}
+
+{% block content %}
+<style>
+    .design-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 0;
+        margin: -15px -15px 30px -15px;
+        border-radius: 0 0 20px 20px;
+    }
+    .design-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+    .design-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .design-card img {
+        height: 200px;
+        object-fit: cover;
+    }
+    .section-title {
+        position: relative;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 2px;
+    }
+    .color-swatch {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 5px;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .feature-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 25px;
+        display: inline-block;
+        margin: 4px;
+        font-size: 0.85rem;
+    }
+    .room-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+    }
+    .vastu-card {
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+    .smart-card {
+        background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+    .tip-card {
+        background: linear-gradient(135deg, #d4fc79, #96e6a1);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    .material-item {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+    .material-item i {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+    .image-gallery img {
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .image-gallery img:hover {
+        transform: scale(1.05);
+    }
+    .loading-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="design-hero text-center">
+    <div class="container">
+        <h1 class="mb-3"><i class="bi bi-palette2"></i> Explore House Designs</h1>
+        <p class="mb-2 fs-5">Personalized design inspiration for your dream home</p>
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
+            <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                <i class="bi bi-rulers"></i> {{ requirement.plot_size }}
+            </span>
+            <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                <i class="bi bi-building"></i> {{ requirement.floors }} Floor{{ requirement.floors|pluralize }}
+            </span>
+            <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                <i class="bi bi-cash-stack"></i> ₹{{ requirement.budget|floatformat:0 }}
+            </span>
+            <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                <i class="bi bi-geo-alt"></i> {{ requirement.city }}
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if error and not design_json %}
+<!-- Error State -->
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-triangle display-4"></i>
+            <h4 class="mt-3">Could not generate design plan</h4>
+            <p>{{ error }}</p>
+            <a href="{% url 'house_ai:explore_designs' requirement.id %}" class="btn btn-primary mt-2">
+                <i class="bi bi-arrow-clockwise"></i> Try Again
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if design_json %}
+<!-- AI-Generated Design Plan -->
+
+<!-- Architectural Style -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card design-card border-0">
+            <div class="card-body p-4">
+                <h3 class="section-title">
+                    <i class="bi bi-house-door text-primary"></i>
+                    {{ design_json.architectural_style|default:"Recommended Style" }}
+                </h3>
+                <p class="lead text-muted">{{ design_json.style_description|default:"" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Color Palette -->
+{% if design_json.color_palette %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card design-card border-0">
+            <div class="card-body p-4">
+                <h4 class="section-title"><i class="bi bi-palette text-primary"></i> Recommended Color Palette</h4>
+                <div class="text-center mb-3">
+                    {% if design_json.color_palette.primary %}
+                    <div class="color-swatch" style="background-color: {{ design_json.color_palette.primary }};" title="Primary"></div>
+                    {% endif %}
+                    {% if design_json.color_palette.secondary %}
+                    <div class="color-swatch" style="background-color: {{ design_json.color_palette.secondary }};" title="Secondary"></div>
+                    {% endif %}
+                    {% if design_json.color_palette.accent %}
+                    <div class="color-swatch" style="background-color: {{ design_json.color_palette.accent }};" title="Accent"></div>
+                    {% endif %}
+                </div>
+                {% if design_json.color_palette.description %}
+                <p class="text-center text-muted">{{ design_json.color_palette.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Exterior Design + Images -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card design-card border-0 h-100">
+            <div class="card-body p-4">
+                <h4 class="section-title"><i class="bi bi-building text-primary"></i> Exterior Design</h4>
+                {% if design_json.exterior %}
+                <p>{{ design_json.exterior.design|default:"" }}</p>
+                {% if design_json.exterior.features %}
+                <div class="mt-3">
+                    {% for feature in design_json.exterior.features %}
+                    <span class="feature-badge"><i class="bi bi-check-circle"></i> {{ feature }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h4 class="section-title"><i class="bi bi-images text-primary"></i> Exterior Inspiration</h4>
+        <div class="row image-gallery">
+            {% for img in design_images.modern_exterior %}
+            <div class="col-6 mb-3">
+                <img src="{{ img }}" class="img-fluid w-100" alt="Exterior Design" loading="lazy">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Room Layout -->
+{% if design_json.room_layout %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="section-title"><i class="bi bi-door-open text-primary"></i> Room Layout & Floor Plan</h4>
+    </div>
+
+    {% if design_json.room_layout.ground_floor %}
+    <div class="col-md-6">
+        <div class="card design-card border-0 h-100">
+            <div class="card-body p-4">
+                <h5><i class="bi bi-layers text-primary"></i> Ground Floor</h5>
+                {% if design_json.room_layout.ground_floor.rooms %}
+                <div class="mt-3">
+                    {% for room in design_json.room_layout.ground_floor.rooms %}
+                    <div class="room-card">
+                        <i class="bi bi-door-open text-primary me-2"></i>{{ room }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if design_json.room_layout.ground_floor.highlight %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-lightbulb"></i> <strong>Highlight:</strong> {{ design_json.room_layout.ground_floor.highlight }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if design_json.room_layout.first_floor and requirement.floors > 1 %}
+    <div class="col-md-6">
+        <div class="card design-card border-0 h-100">
+            <div class="card-body p-4">
+                <h5><i class="bi bi-layers text-primary"></i> First Floor</h5>
+                {% if design_json.room_layout.first_floor.rooms %}
+                <div class="mt-3">
+                    {% for room in design_json.room_layout.first_floor.rooms %}
+                    <div class="room-card">
+                        <i class="bi bi-door-open text-primary me-2"></i>{{ room }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if design_json.room_layout.first_floor.highlight %}
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="bi bi-lightbulb"></i> <strong>Highlight:</strong> {{ design_json.room_layout.first_floor.highlight }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Interior Design -->
+{% if design_json.interiors %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="section-title"><i class="bi bi-brush text-primary"></i> Interior Design</h4>
+    </div>
+
+    {% if design_json.interiors.living_room %}
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card design-card">
+            <img src="{{ design_images.living_room.0 }}" class="card-img-top" alt="Living Room">
+            <div class="card-body">
+                <h6><i class="bi bi-tv text-primary"></i> Living Room</h6>
+                <p class="small text-muted mb-0">{{ design_json.interiors.living_room }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if design_json.interiors.kitchen %}
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card design-card">
+            <img src="{{ design_images.kitchen.0 }}" class="card-img-top" alt="Kitchen">
+            <div class="card-body">
+                <h6><i class="bi bi-cup-hot text-primary"></i> Kitchen</h6>
+                <p class="small text-muted mb-0">{{ design_json.interiors.kitchen }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if design_json.interiors.bedrooms %}
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card design-card">
+            <img src="{{ design_images.bedroom.0 }}" class="card-img-top" alt="Bedroom">
+            <div class="card-body">
+                <h6><i class="bi bi-moon text-primary"></i> Bedrooms</h6>
+                <p class="small text-muted mb-0">{{ design_json.interiors.bedrooms }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if design_json.interiors.bathrooms %}
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card design-card">
+            <img src="{{ design_images.bathroom.0 }}" class="card-img-top" alt="Bathroom">
+            <div class="card-body">
+                <h6><i class="bi bi-droplet text-primary"></i> Bathrooms</h6>
+                <p class="small text-muted mb-0">{{ design_json.interiors.bathrooms }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Materials -->
+{% if design_json.materials %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="section-title"><i class="bi bi-hammer text-primary"></i> Recommended Materials</h4>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="material-item">
+            <i class="bi bi-grid-3x3"></i>
+            <h6>Flooring</h6>
+            <p class="small text-muted mb-0">{{ design_json.materials.flooring|default:"N/A" }}</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="material-item">
+            <i class="bi bi-square"></i>
+            <h6>Walls</h6>
+            <p class="small text-muted mb-0">{{ design_json.materials.walls|default:"N/A" }}</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="material-item">
+            <i class="bi bi-house"></i>
+            <h6>Roof</h6>
+            <p class="small text-muted mb-0">{{ design_json.materials.roof|default:"N/A" }}</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="material-item">
+            <i class="bi bi-aspect-ratio"></i>
+            <h6>Windows</h6>
+            <p class="small text-muted mb-0">{{ design_json.materials.windows|default:"N/A" }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Vastu Tips + Smart Features -->
+<div class="row mb-4">
+    {% if design_json.vastu_tips %}
+    <div class="col-md-6">
+        <h4 class="section-title"><i class="bi bi-compass text-primary"></i> Vastu Shastra Tips</h4>
+        {% for tip in design_json.vastu_tips %}
+        <div class="vastu-card">
+            <i class="bi bi-compass-fill text-warning me-2"></i>{{ tip }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if design_json.smart_features %}
+    <div class="col-md-6">
+        <h4 class="section-title"><i class="bi bi-cpu text-primary"></i> Smart Home Features</h4>
+        {% for feature in design_json.smart_features %}
+        <div class="smart-card">
+            <i class="bi bi-lightning-charge text-primary me-2"></i>{{ feature }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Timeline & Pro Tips -->
+<div class="row mb-4">
+    {% if design_json.estimated_timeline %}
+    <div class="col-md-6">
+        <div class="card design-card border-0 h-100">
+            <div class="card-body p-4">
+                <h4 class="section-title"><i class="bi bi-calendar-event text-primary"></i> Construction Timeline</h4>
+                <p>{{ design_json.estimated_timeline }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if design_json.pro_tips %}
+    <div class="col-md-6">
+        <h4 class="section-title"><i class="bi bi-star text-primary"></i> Pro Tips</h4>
+        {% for tip in design_json.pro_tips %}
+        <div class="tip-card">
+            <i class="bi bi-lightbulb-fill text-success me-2"></i>{{ tip }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% endif %}
+
+<!-- Image Gallery (always visible) -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h4 class="section-title"><i class="bi bi-images text-primary"></i> More Design Inspiration</h4>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <h5 class="h6 text-muted mb-3">🏠 Traditional Indian Homes</h5>
+        <div class="row image-gallery">
+            {% for img in design_images.traditional_indian %}
+            <div class="col-12 mb-3">
+                <img src="{{ img }}" class="img-fluid w-100" alt="Traditional Design" loading="lazy">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <h5 class="h6 text-muted mb-3">🛋️ Interior Ideas</h5>
+        <div class="row image-gallery">
+            {% for img in design_images.living_room %}
+            <div class="col-12 mb-3">
+                <img src="{{ img }}" class="img-fluid w-100" alt="Interior Design" loading="lazy">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <h5 class="h6 text-muted mb-3">🍳 Kitchen & Bath</h5>
+        <div class="row image-gallery">
+            {% for img in design_images.kitchen %}
+            <div class="col-12 mb-3">
+                <img src="{{ img }}" class="img-fluid w-100" alt="Kitchen Design" loading="lazy">
+            </div>
+            {% endfor %}
+            {% for img in design_images.bathroom %}
+            <div class="col-12 mb-3">
+                <img src="{{ img }}" class="img-fluid w-100" alt="Bathroom Design" loading="lazy">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <a href="{% url 'house_ai:explore_designs' requirement.id %}" class="btn btn-outline-primary btn-lg me-2">
+            <i class="bi bi-arrow-clockwise"></i> Regenerate Designs
+        </a>
+        <a href="{% url 'house_ai:view_requirement' requirement.id %}" class="btn btn-outline-secondary btn-lg me-2">
+            <i class="bi bi-arrow-left"></i> Back to Requirement
+        </a>
+        <a href="{% url 'house_ai:ai_chat' %}" class="btn btn-primary btn-lg">
+            <i class="bi bi-chat-dots"></i> Ask AI More
+        </a>
+    </div>
+</div>
+
+{% endblock %}

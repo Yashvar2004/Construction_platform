@@ -120,6 +120,9 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
+                    <a href="{% url 'house_ai:explore_designs' requirement.id %}" class="btn btn-success">
+                        <i class="bi bi-palette2"></i> Explore Designs
+                    </a>
                     <a href="{% url 'house_ai:upload_media' requirement.id %}" class="btn btn-outline-primary">Upload Media</a>
                     <a href="{% url 'house_ai:ai_chat' %}" class="btn btn-outline-info">AI Chat</a>
                     <a href="{% url 'house_ai:my_requirements' %}" class="btn btn-outline-secondary">My Requirements</a>
