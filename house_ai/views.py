@@ -7,8 +7,12 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 import json
 import os
+import logging
+import traceback
 from .models import HouseRequirement, MediaUpload, AIResponse
 from .forms import HouseRequirementForm, MultipleMediaUploadForm
+
+logger = logging.getLogger(__name__)
 
 
 def get_groq_client():
@@ -19,9 +23,14 @@ def get_groq_client():
         if not api_key:
             api_key = getattr(settings, 'GROQ_API_KEY', '')
         if not api_key:
+            logger.warning("GROQ_API_KEY is not set")
             return None
         return Groq(api_key=api_key)
-    except Exception:
+    except ImportError:
+        logger.error("groq package is not installed")
+        return None
+    except Exception as e:
+        logger.error(f"Failed to initialize Groq client: {e}")
         return None
 
 
@@ -50,6 +59,27 @@ Guidelines:
 - Include practical tips and actionable advice
 - When discussing costs, mention they are approximate and may vary by location
 - Format responses with clear structure using bullet points when helpful"""
+
+
+def call_groq_api(messages, max_tokens=800):
+    """Call Groq API with error handling. Returns (response_text, error_message)."""
+    client = get_groq_client()
+
+    if client is None:
+        return None, "AI service is not configured. Please set the GROQ_API_KEY environment variable."
+
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=messages,
+            model="llama-3.3-70b-versatile",
+            temperature=0.7,
+            max_tokens=max_tokens,
+        )
+        return chat_completion.choices[0].message.content, None
+    except Exception as e:
+        error_detail = str(e)
+        logger.error(f"Groq API error: {error_detail}\n{traceback.format_exc()}")
+        return None, f"AI service error: {error_detail}"
 
 
 @login_required
@@ -180,11 +210,33 @@ def regenerate_ai_response(request, requirement_id):
 
 def generate_ai_response(requirement):
     """Generate AI response using Groq API based on house requirements."""
-    client = get_groq_client()
 
-    if client is None:
-        # Fallback to template-based response if Groq is not configured
-        response_text = f"""🏠 AI Analysis for House Construction
+    user_prompt = f"""Analyze and provide a detailed construction plan for a house with these requirements:
+
+- Plot Size: {requirement.plot_size}
+- Budget: ₹{requirement.budget:,.0f}
+- Number of Floors: {requirement.floors}
+- City/Location: {requirement.city}
+
+Please provide:
+1. A detailed design suggestion covering structure, materials, and layout recommendations
+2. A cost breakdown with approximate percentages and amounts for each phase
+3. Timeline estimation for each construction phase
+4. Material recommendations suitable for the {requirement.city} region
+5. Any important tips or considerations for this specific budget and location
+
+Keep the response practical and focused on Indian construction practices and costs."""
+
+    messages_list = [
+        {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    design_suggestion, error = call_groq_api(messages_list, max_tokens=1500)
+
+    if design_suggestion is None:
+        # AI call failed - use template fallback with error note
+        design_suggestion = f"""🏠 AI Analysis for House Construction
 
 Based on your requirements:
 - Plot Size: {requirement.plot_size}
@@ -209,44 +261,9 @@ Based on your requirements:
 
 ⏱️ Recommended Timeline: {requirement.floors * 6} months
 
-💡 Tip: Set GROQ_API_KEY environment variable for AI-powered detailed analysis."""
-
-        AIResponse.objects.create(
-            requirement=requirement,
-            design_suggestion=response_text,
-            cost_insight=f"Based on ₹{requirement.budget:,.0f} budget for {requirement.plot_size} plot with {requirement.floors} floors in {requirement.city}"
-        )
-        return
-
-    try:
-        user_prompt = f"""Analyze and provide a detailed construction plan for a house with these requirements:
-
-- Plot Size: {requirement.plot_size}
-- Budget: ₹{requirement.budget:,.0f}
-- Number of Floors: {requirement.floors}
-- City/Location: {requirement.city}
-
-Please provide:
-1. A detailed design suggestion covering structure, materials, and layout recommendations
-2. A cost breakdown with approximate percentages and amounts for each phase
-3. Timeline estimation for each construction phase
-4. Material recommendations suitable for the {requirement.city} region
-5. Any important tips or considerations for this specific budget and location
-
-Keep the response practical and focused on Indian construction practices and costs."""
-
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt}
-            ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.7,
-            max_tokens=1500,
-        )
-
-        design_suggestion = chat_completion.choices[0].message.content
-
+⚠️ Note: {error}"""
+        cost_insight = f"Based on ₹{requirement.budget:,.0f} budget for {requirement.plot_size} plot with {requirement.floors} floors in {requirement.city}"
+    else:
         # Generate cost insight separately
         cost_prompt = f"""Provide a concise cost insight summary for:
 - Budget: ₹{requirement.budget:,.0f}
@@ -254,58 +271,20 @@ Keep the response practical and focused on Indian construction practices and cos
 
 Give a 2-3 sentence summary of budget allocation and key cost factors. Be specific with numbers."""
 
-        cost_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
-                {"role": "user", "content": cost_prompt}
-            ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.7,
-            max_tokens=300,
-        )
+        cost_messages = [
+            {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
+            {"role": "user", "content": cost_prompt}
+        ]
 
-        cost_insight = cost_completion.choices[0].message.content
+        cost_insight, cost_error = call_groq_api(cost_messages, max_tokens=300)
+        if cost_insight is None:
+            cost_insight = f"Based on ₹{requirement.budget:,.0f} budget for {requirement.plot_size} plot with {requirement.floors} floors in {requirement.city}"
 
-        AIResponse.objects.create(
-            requirement=requirement,
-            design_suggestion=design_suggestion,
-            cost_insight=cost_insight
-        )
-
-    except Exception as e:
-        # Fallback on API error
-        response_text = f"""🏠 AI Analysis for House Construction
-
-Based on your requirements:
-- Plot Size: {requirement.plot_size}
-- Budget: ₹{requirement.budget:,.0f}
-- Floors: {requirement.floors}
-- City: {requirement.city}
-
-📋 Estimated Construction Details:
-- Foundation: Standard concrete foundation
-- Structure: RCC frame with brick walls
-- Roof: Concrete slab with waterproofing
-- Flooring: Vitrified tiles for living areas
-- Electrical: Concealed wiring with safety features
-- Plumbing: CPVC pipes with modern fixtures
-
-💰 Estimated Cost Breakdown:
-- Foundation: ₹{requirement.budget * 0.15:,.0f} (15%)
-- Structure: ₹{requirement.budget * 0.35:,.0f} (35%)
-- Finishing: ₹{requirement.budget * 0.30:,.0f} (30%)
-- Electrical & Plumbing: ₹{requirement.budget * 0.10:,.0f} (10%)
-- Miscellaneous: ₹{requirement.budget * 0.10:,.0f} (10%)
-
-⏱️ Recommended Timeline: {requirement.floors * 6} months
-
-⚠️ Note: AI service encountered an error. Showing template response."""
-
-        AIResponse.objects.create(
-            requirement=requirement,
-            design_suggestion=response_text,
-            cost_insight=f"Based on ₹{requirement.budget:,.0f} budget for {requirement.plot_size} plot with {requirement.floors} floors in {requirement.city}"
-        )
+    AIResponse.objects.create(
+        requirement=requirement,
+        design_suggestion=design_suggestion,
+        cost_insight=cost_insight
+    )
 
 
 @login_required
@@ -321,48 +300,19 @@ def ai_chat(request):
         if not user_message:
             return JsonResponse({'error': 'Message cannot be empty.'}, status=400)
 
-        client = get_groq_client()
+        messages_list = [
+            {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
+            {"role": "user", "content": user_message}
+        ]
 
-        if client is None:
-            # Fallback response when Groq is not configured
-            ai_response = f"""I received your question: "{user_message}"
+        ai_response, error = call_groq_api(messages_list, max_tokens=800)
 
-⚠️ The AI assistant needs a Groq API key to provide intelligent responses. Please ask the administrator to set the GROQ_API_KEY environment variable.
+        if ai_response is None:
+            ai_response = f"⚠️ {error}\n\nPlease check that the GROQ_API_KEY is configured in your Vercel project settings."
 
-In the meantime, here are some general tips:
-- For cost queries: Construction costs in India typically range ₹1,500-3,500 per sq ft
-- For timeline: A standard 2-floor house takes 8-14 months
-- For materials: Use branded cement (ACC, UltraTech) and TMT steel bars
-
-You can also submit your house requirements for a detailed analysis."""
-
-            return JsonResponse({
-                'user_message': user_message,
-                'ai_response': ai_response
-            })
-
-        try:
-            chat_completion = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": CONSTRUCTION_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_message}
-                ],
-                model="llama-3.3-70b-versatile",
-                temperature=0.7,
-                max_tokens=800,
-            )
-
-            ai_response = chat_completion.choices[0].message.content
-
-            return JsonResponse({
-                'user_message': user_message,
-                'ai_response': ai_response
-            })
-
-        except Exception as e:
-            return JsonResponse({
-                'user_message': user_message,
-                'ai_response': f"I'm sorry, I encountered an error processing your request. Please try again. Error: {str(e)}"
-            })
+        return JsonResponse({
+            'user_message': user_message,
+            'ai_response': ai_response
+        })
 
     return render(request, 'house_ai/ai_chat.html')

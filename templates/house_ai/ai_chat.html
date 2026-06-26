@@ -25,6 +25,7 @@
                 </div>
                 
                 <form id="chat-form">
+                    {% csrf_token %}
                     <div class="input-group">
                         <input type="text" id="message-input" class="form-control" placeholder="Ask your construction question..." required>
                         <button type="submit" class="btn btn-primary">
